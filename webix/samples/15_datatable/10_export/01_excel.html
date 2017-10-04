@@ -1,0 +1,112 @@
+<!doctype html>
+<html>
+<head>
+	<title>Export to Excel</title>
+	<link rel="stylesheet" href="../../../codebase/webix.css" type="text/css"   charset="utf-8">
+	<script src="../../../codebase/webix.js" type="text/javascript" charset="utf-8"></script>
+
+	<link rel="stylesheet" type="text/css" href="../common/samples.css">
+	<script type="text/javascript" src="../../common/testdata.js"></script>
+	<script src="../../../../bower_components/angular/angular.js"></script>
+	<script src="../../../../bower_components/jquery/dist/jquery.js"></script>
+	<style type="text/css">
+		html,body{ height:100%; margin:0}
+		.webix_view.toolbar{
+			background: #fafafa;
+		}
+	</style>
+</head>
+<body ng-app="myApp" ng-controller="testCtrl">
+
+	<div id="dataDiv"></div>
+
+	<script>
+
+	angular.module('myApp',[])
+	.controller('testCtrl', ['$scope','$http', function ($scope,$http) {
+		activate();
+		var studentsData;
+		function activate(){
+			$http.get('http://132.140.160.109/plss1.1/server/schoolAdmin/student/getStudents.php')
+			.then(function(response){
+				studentsData = response.data;
+				
+				generateTable();
+			},function(error){
+				console.log(error);
+			})
+		}
+		$scope.savedata = function(){
+			console.log("save");
+			webix.ui({
+  view: "datatable",
+  save: "connector->save.php"
+})
+}
+		function generateTable(){
+			webix.ready(function(){
+		grida  = webix.ui({
+			container:"dataDiv",
+			padding: 20,
+			rows: [
+				{
+					id: "table",
+					view:"datatable",
+					columns:[
+						{ id:"sid",	editor:"text",header:"", css:"sid",  		width:50},
+						{ id:"name",	editor:"text",header:" name",width:250},
+						{ id:"address",	editor:"text",header:"address" , width:250},
+						{ id:"city",editor:"text",	header:"city", 	width:100},
+						{id :"taluka", editor:"text",header :"taluka", autowidth:true}
+					],
+						editable:true,
+					autowidth:true,
+					height: 450,
+					data:studentsData
+				},
+				{
+					view: "form",
+					css: "toolbar",
+					paddingY: 5,
+					paddingX: 10,
+					cols:[
+					{ view:"button", value:"Export all", autowidth:true, click:function(){
+					webix.toPDF($$("table"));
+				}},
+						{
+							view: "label", label: "Export"
+						},
+
+						{
+							view: "button", label: "All Fields", width: 95, click:function(){
+								webix.toExcel($$("table"));
+							}
+						},
+				
+						{
+							view: "button", label: "'sid' and 'name'", width: 140, click:function(){
+								webix.toExcel($$("table"), {
+									filename: "table",
+									name: "Films",
+									columns:{
+										"sid":{header: "sid", width: 50},
+										"name":{header: "name", width: 200},
+										"address":{header: "address", width: 200},
+										"city":{header: "city", width: 200},
+										"taluka":{header: "taluka", width: 200}
+									}
+								});
+							}
+						}
+					]
+
+				}
+			]
+		});
+	})
+		}
+		}])
+
+	</script>
+</body>
+</html>
